@@ -1,0 +1,125 @@
+zabbix_export:
+  version: '6.0'
+  date: '2026-02-27T17:40:30Z'
+  groups:
+    - uuid: 57b7ae836ca64446ba2c296389c009b7
+      name: Templates/Modules
+  templates:
+    - uuid: d8fa3533f14540a3bec5b22dff78b6f9
+      template: 'ICMP Ping by NOC'
+      name: 'ICMP Ping by NOC'
+      groups:
+        - name: Templates/Modules
+      items:
+        - uuid: afc4ec66e18d4d3a9962332d4aa73488
+          name: 'ICMP loss'
+          type: SIMPLE
+          key: 'icmppingloss[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}]'
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: c3dc408f575348ed85a9ec56011a2b95
+              expression: |
+                min(/ICMP Ping by NOC/icmppingloss[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.TIME_CHECK})>{$ICMP_LOSS_WARN} and 
+                min(/ICMP Ping by NOC/icmppingloss[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.TIME_CHECK})<100
+              name: 'PING: Alta perda de pacotes ICMP {ITEM.LASTVALUE1}'
+              priority: WARNING
+              dependencies:
+                - name: 'PING: Indisponível por ping ICMP (IP: {HOST.CONN})'
+                  expression: 'last(/ICMP Ping by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.PING.HIGH})=0'
+                  recovery_expression: 'last(/ICMP Ping by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.PING.HIGH.REC})=1'
+              tags:
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: performance
+        - uuid: 0c729bc15e604ade93c9af8eea0bb8d1
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: 'icmppingsec[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}]'
+          history: 7d
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: e281289b0c054045b8daa7fa88e23877
+              expression: 'avg(/ICMP Ping by NOC/icmppingsec[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.TIMECHECK})>{$ICMP_RESPONSE_TIME_WARN}'
+              name: 'PING: Tempo de resposta de ping ICMP está alto {ITEM.LASTVALUE1} (>{$ICMP.RESPONSE.TIME.WARNING})'
+              priority: WARNING
+              dependencies:
+                - name: 'PING: Alta perda de pacotes ICMP {ITEM.LASTVALUE1}'
+                  expression: |
+                    min(/ICMP Ping by NOC/icmppingloss[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.TIME_CHECK})>{$ICMP_LOSS_WARN} and 
+                    min(/ICMP Ping by NOC/icmppingloss[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.TIME_CHECK})<100
+                - name: 'PING: Indisponível por ping ICMP (IP: {HOST.CONN})'
+                  expression: 'last(/ICMP Ping by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.PING.HIGH})=0'
+                  recovery_expression: 'last(/ICMP Ping by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.PING.HIGH.REC})=1'
+              tags:
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: performance
+        - uuid: 09598adbc0834d0a95624c41456087bc
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: 'icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}]'
+          history: 7d
+          valuemap:
+            name: 'Service state'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: 92bfe8ba14f54fc98c9819f11219ec6c
+              expression: 'last(/ICMP Ping by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.PING.HIGH})=0'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/ICMP Ping by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}],{$ICMP.PING.HIGH.REC})=1'
+              name: 'PING: Indisponível por ping ICMP (IP: {HOST.CONN})'
+              priority: HIGH
+              description: 'Last three attempts returned timeout.  Please check device connectivity.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: availability
+      macros:
+        - macro: '{$ICMP.PACKETS}'
+          value: '4'
+          description: 'quantidade de pacotes de ping'
+        - macro: '{$ICMP.PING.HIGH}'
+          value: 1m
+          description: 'tempo sem resposta de ping para alarmar'
+        - macro: '{$ICMP.PING.HIGH.REC}'
+          value: 2m
+          description: 'tempo de resposta de ping para resolver'
+        - macro: '{$ICMP.TIMEOUT}'
+          value: '200'
+          description: milissegundos
+        - macro: '{$ICMP.TIME_CHECK}'
+          value: 5m
+          description: 'tempo de análise para as triggers de ICMP'
+        - macro: '{$ICMP_LOSS_WARN}'
+          value: '50'
+          description: '% de pacotes perdidos'
+        - macro: '{$ICMP_RESPONSE_TIME_WARN}'
+          value: '0.15'
+          description: 'porém deve se usar a unidade de medida em segundos (1000ms = 1s)'
+      valuemaps:
+        - uuid: 8476de931e66420ea740a86b10cc6d0b
+          name: 'Service state'
+          mappings:
+            - value: '0'
+              newvalue: Down
+            - value: '1'
+              newvalue: Up

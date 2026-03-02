@@ -1,0 +1,128 @@
+zabbix_export:
+  version: '6.0'
+  date: '2026-02-27T17:40:07Z'
+  groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 5e8c95bf36504567a96ebc83e65485cb
+      template: 'Triple Check  by NOC'
+      name: 'Triple Check  by NOC'
+      templates:
+        - name: 'ICMP Ping by NOC'
+      groups:
+        - name: Templates
+      items:
+        - uuid: de98f2702c3c40e099597a25ac3cfe93
+          name: 'Agent: Host name'
+          type: ZABBIX_ACTIVE
+          key: agent.hostname
+          delay: 1h
+          trends: '0'
+          value_type: CHAR
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: item
+              value: agent
+        - uuid: ec03b3752c934b1a8e091292d72fa6cd
+          name: 'Agent: Communication'
+          key: agent.ping
+          trends: '0'
+          value_type: CHAR
+          valuemap:
+            name: 'Disponibilidade do agente'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: item
+              value: agent
+        - uuid: c3ad5bc9213f430080cf9dd6ee0b8b82
+          name: 'Agent: Variant'
+          type: ZABBIX_ACTIVE
+          key: agent.variant
+          delay: 1h
+          valuemap:
+            name: 'Agente Variant'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: item
+              value: agent
+        - uuid: 3fc3b0ffabd543018ec0281a0af75195
+          name: 'Agent: Version'
+          type: ZABBIX_ACTIVE
+          key: agent.version
+          delay: 1h
+          trends: '0'
+          value_type: CHAR
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: item
+              value: agent
+        - uuid: cfe89dc6b11f448e9f9bdbf790cda0eb
+          name: 'Agent: Port availability'
+          type: SIMPLE
+          key: 'net.tcp.service[tcp,,{$ZABBIX.AGENT.PORT}]'
+          delay: 5m
+          valuemap:
+            name: 'Status do Serviço TCP'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: item
+              value: agent
+          triggers:
+            - uuid: 2532bbc0f9bb47d797b64f6f40be3cc0
+              expression: 'max(/Triple Check  by NOC/net.tcp.service[tcp,,{$ZABBIX.AGENT.PORT}], {$NET.TCP.SERVICE.TIME_CHECK_AVG})=0'
+              name: 'HOST: A porta {$ZABBIX.AGENT.PORT} não está respondendo ({HOST.IP})'
+              priority: HIGH
+              description: 'O serviço do Zabbix agent pode estar parado ou não respondendo (Firewall).'
+      macros:
+        - macro: '{$NET.TCP.SERVICE.TIME_CHECK_AVG}'
+          value: 3m
+          description: 'Intervalo de checagem de trigger'
+        - macro: '{$ZABBIX.AGENT.PORT}'
+          value: '10050'
+          description: 'Porta utilizada pelo agente Zabbix'
+      valuemaps:
+        - uuid: e6b8cf315ff44406a54a1734d2c015c0
+          name: 'Agente Variant'
+          mappings:
+            - type: GREATER_OR_EQUAL
+              value: '1'
+              newvalue: 'Zabbix Agent'
+        - uuid: 25818cf23c484181bfaeb93732b20cc3
+          name: 'Disponibilidade do agente'
+          mappings:
+            - value: '1'
+              newvalue: Disponivel
+        - uuid: b95c6700de314a24852665ef10e59110
+          name: 'Status do Serviço TCP'
+          mappings:
+            - value: '0'
+              newvalue: Down
+            - value: '1'
+              newvalue: Up
+  triggers:
+    - uuid: 4845b019d59940b1a723643d4bc0982e
+      expression: 'min(/Triple Check  by NOC/net.tcp.service[tcp,,{$ZABBIX.AGENT.PORT}],{$NET.TCP.SERVICE.TIME_CHECK_AVG})=1 and last(/Triple Check  by NOC/icmpping[,{$ICMP.PACKETS},,,{$ICMP.TIMEOUT}])=1 and nodata(/Triple Check  by NOC/agent.ping,3m)=1'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'nodata(/Triple Check  by NOC/agent.ping,3m)=0'
+      name: 'HOST: O agente não está enviando dados ({HOST.IP})'
+      priority: AVERAGE
+      description: 'O sistema pode estar sobrecarregado ou congelado.'
+      dependencies:
+        - name: 'HOST: A porta {$ZABBIX.AGENT.PORT} não está respondendo ({HOST.IP})'
+          expression: 'max(/Triple Check  by NOC/net.tcp.service[tcp,,{$ZABBIX.AGENT.PORT}], {$NET.TCP.SERVICE.TIME_CHECK_AVG})=0'

@@ -1,0 +1,272 @@
+zabbix_export:
+  version: '6.0'
+  date: '2026-02-27T17:38:06Z'
+  groups:
+    - uuid: 57b7ae836ca64446ba2c296389c009b7
+      name: Templates/Modules
+  templates:
+    - uuid: 637e2037073f48819a2171cd84a77ac3
+      template: 'Linux Base by NOC'
+      name: 'Linux Base by NOC'
+      description: 'Template configurado por Leoni'
+      templates:
+        - name: 'Linux CPU by NOC'
+        - name: 'Linux discovery disk by NOC'
+        - name: 'Linux memory by NOC'
+        - name: 'Zabbix Agent - Triple Check  by NOC'
+      groups:
+        - name: Templates/Modules
+      items:
+        - uuid: 3d7e30cef75a438f837bc7818cd01f08
+          name: 'Linux: Maximum number of open file descriptors'
+          type: ZABBIX_ACTIVE
+          key: kernel.maxfiles
+          delay: 1h
+          history: 7d
+          description: 'It could be increased by using `sysctl` utility or modifying the file `/etc/sysctl.conf`.'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: component
+              value: system
+        - uuid: fcd3b88335974a789eae7d85f1568d4b
+          name: 'Linux: Maximum number of processes'
+          type: ZABBIX_ACTIVE
+          key: kernel.maxproc
+          delay: 1h
+          history: 7d
+          description: 'It could be increased by using `sysctl` utility or modifying the file `/etc/sysctl.conf`.'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: component
+              value: system
+        - uuid: 9ff3f731559f47e5b3db6627cc4595f1
+          name: 'Linux: Number of processes'
+          type: ZABBIX_ACTIVE
+          key: proc.num
+          history: 7d
+          tags:
+            - tag: component
+              value: system
+        - uuid: ebdde9ae8d3640e792313f5ca32eaa26
+          name: 'Linux: Number of running processes'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[,,run]'
+          history: 7d
+          tags:
+            - tag: component
+              value: system
+        - uuid: 26cc9a593a1c46f38fde685fbe85131f
+          name: 'Linux: System boot time'
+          type: ZABBIX_ACTIVE
+          key: system.boottime
+          delay: 15m
+          history: 7d
+          units: unixtime
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
+          tags:
+            - tag: component
+              value: system
+        - uuid: d8344121677040be9472b6daed74df03
+          name: 'Linux: System name'
+          type: ZABBIX_ACTIVE
+          key: system.hostname
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          description: 'The host name of the system.'
+          inventory_link: NAME
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+          triggers:
+            - uuid: 4e223fdd13b34feb94b07caf89d55c42
+              expression: 'change(/Linux Base by NOC/system.hostname)=1 and last(/Linux Base by NOC/system.hostname,#1)<>0'
+              name: 'HOST: O nome do sistema foi alterado ({ITEM.LASTVALUE2} > {ITEM.LASTVALUE1})'
+              priority: INFO
+              description: 'O nome do sistema mudou. Confirme para fechar o problema manualmente.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 9ad71d183ea849b4a5e3cd24ff779ddb
+          name: 'Linux: System local time'
+          type: ZABBIX_ACTIVE
+          key: system.localtime
+          history: 7d
+          units: unixtime
+          description: 'The local system time of the host.'
+          tags:
+            - tag: component
+              value: system
+          triggers:
+            - uuid: 6c94db1faa11460ebd40da678c2777c9
+              expression: 'fuzzytime(/Linux Base by NOC/system.localtime,{$SYSTEM.FUZZYTIME.MAX})=0'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'fuzzytime(/Linux Base by NOC/system.localtime,{$SYSTEM.FUZZYTIME.MAX})<>1'
+              name: 'HOST: A hora do sistema está fora de sincronia (diferança maios que {$SYSTEM.FUZZYTIME.MAX}s do servidor Zabbix)'
+              priority: WARNING
+              description: 'The host''s system time is different from Zabbix server time.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: availability
+        - uuid: ea2fa61fa5524512aaf333ada1dcd79c
+          name: 'Linux: Operating system architecture'
+          type: ZABBIX_ACTIVE
+          key: system.sw.arch
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          description: 'The architecture of the operating system.'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: component
+              value: os
+        - uuid: 71c818b5e33242d5b02d63fd1daeee5e
+          name: 'Linux: Operating system'
+          type: ZABBIX_ACTIVE
+          key: system.sw.os
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          inventory_link: OS
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: component
+              value: os
+        - uuid: 4bf8a22ae7be4894a3163fea7dd09c1d
+          name: 'Linux: Software installed'
+          type: ZABBIX_ACTIVE
+          key: system.sw.packages
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: component
+              value: os
+        - uuid: 38e6427cf89b44f79abd8921fb875e2e
+          name: 'Linux: System description'
+          type: ZABBIX_ACTIVE
+          key: system.uname
+          delay: 15m
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          description: 'The information as normally returned by `uname -a`.'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: component
+              value: system
+        - uuid: 8ccd3d19d54b4b62ad96c74195a6e6fd
+          name: 'Linux: System uptime'
+          type: ZABBIX_ACTIVE
+          key: system.uptime
+          delay: 30s
+          history: 7d
+          trends: '0'
+          units: uptime
+          description: 'The system uptime expressed in the following format: "N days, hh:mm:ss".'
+          tags:
+            - tag: component
+              value: system
+          triggers:
+            - uuid: b49b1fec586643c982707b952b1b4122
+              expression: 'last(/Linux Base by NOC/system.uptime)<10m'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Linux Base by NOC/system.uptime)>=10m'
+              name: 'HOST: {HOST.NAME} foi reiniciado (uptime < 10m)'
+              priority: INFO
+              description: 'The host uptime is less than 10 minutes.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 39edf69e2b5745dcab2205a9b79d3f90
+          name: 'Linux: Number of logged in users'
+          type: ZABBIX_ACTIVE
+          key: system.users.num
+          history: 7d
+          description: 'The number of users who are currently logged in.'
+          tags:
+            - tag: component
+              value: environment
+        - uuid: 32e8cfa8f8904bcca99069f1b2946310
+          name: 'Linux: Checksum of /etc/passwd'
+          type: ZABBIX_ACTIVE
+          key: 'vfs.file.cksum[/etc/passwd,sha256]'
+          delay: 15m
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
+          tags:
+            - tag: component
+              value: security
+      macros:
+        - macro: '{$KERNEL.MAXFILES.MIN}'
+          value: '256'
+        - macro: '{$KERNEL.MAXPROC.MIN}'
+          value: '1024'
+        - macro: '{$SYSTEM.FUZZYTIME.MAX}'
+          value: '60'
+      dashboards:
+        - uuid: 2ef6953f0e1746b9883b6de74e9916e1
+          name: Processes
+          pages:
+            - name: Overview
+              widgets:
+                - type: GRAPH_CLASSIC
+                  width: '24'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid
+                      value:
+                        host: 'Linux Base by NOC'
+                        name: 'Linux: Processes'
+  graphs:
+    - uuid: 15d00bc7815041b3b34bac3adbe7cd64
+      name: 'Linux: Processes'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: 'Linux Base by NOC'
+            key: proc.num
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: 'Linux Base by NOC'
+            key: 'proc.num[,,run]'
