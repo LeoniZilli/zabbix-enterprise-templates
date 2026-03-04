@@ -1,0 +1,124 @@
+zabbix_export:
+  version: '6.0'
+  date: '2026-03-04T11:58:49Z'
+  groups:
+    - uuid: 57b7ae836ca64446ba2c296389c009b7
+      name: Templates/Modules
+  templates:
+    - uuid: 3c8ffed84cd247f79defcbac39171c50
+      template: 'Windows CPU by NOC'
+      name: 'Windows CPU by NOC'
+      description: 'Modelo padrão para monitorar a CPU de máquinas Windows - Criado por Leoni'
+      groups:
+        - name: Templates/Modules
+      items:
+        - uuid: dd460cfabe29458bbcb7da5179ed81c3
+          name: 'Windows: CPU utilization'
+          type: ZABBIX_ACTIVE
+          key: system.cpu.util
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          description: 'The CPU utilization expressed in %.'
+          tags:
+            - tag: component
+              value: cpu
+          triggers:
+            - uuid: 4dbc5d05c2bb4c83928f0c729d6ce8ea
+              expression: 'min(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_CHECK_AVG})>={$CPU.UTIL.AVG}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'max(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_REC_AVG})<{$CPU.UTIL.AVG}'
+              name: 'CPU: Utilização acima de {$CPU.UTIL.AVG}% por mais de {$CPU.UTIL.TIME_CHECK_AVG} (Última coleta:  {ITEM.LASTVALUE})'
+              priority: AVERAGE
+              description: 'The CPU utilization is too high. The system might be slow to respond.'
+              dependencies:
+                - name: 'CPU: Utilização acima de {$CPU.UTIL.HIGH}% por mais de {$CPU.UTIL.TIME_CHECK_HIGH} (Última coleta:  {ITEM.LASTVALUE})'
+                  expression: 'min(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_CHECK_HIGH})>={$CPU.UTIL.HIGH}'
+                  recovery_expression: 'max(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_REC_HIGH})<{$CPU.UTIL.HIGH}'
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 1c121a1af7ae4a6a8ae5e9d8088475cf
+              expression: 'min(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_CHECK_HIGH})>={$CPU.UTIL.HIGH}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'max(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_REC_HIGH})<{$CPU.UTIL.HIGH}'
+              name: 'CPU: Utilização acima de {$CPU.UTIL.HIGH}% por mais de {$CPU.UTIL.TIME_CHECK_HIGH} (Última coleta:  {ITEM.LASTVALUE})'
+              priority: HIGH
+              description: 'The CPU utilization is too high. The system might be slow to respond.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 254fa226f99440f1a8039d90123e6823
+              expression: 'min(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_CHECK_WARN})>={$CPU.UTIL.WARN}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'max(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_REC_WARN})<{$CPU.UTIL.WARN}'
+              name: 'CPU: Utilização acima de {$CPU.UTIL.WARN}% por mais de {$CPU.UTIL.TIME_CHECK_WARN} (Última coleta:  {ITEM.LASTVALUE})'
+              priority: WARNING
+              description: 'The CPU utilization is too warning. The system might be slow to respond.'
+              dependencies:
+                - name: 'CPU: Utilização acima de {$CPU.UTIL.AVG}% por mais de {$CPU.UTIL.TIME_CHECK_AVG} (Última coleta:  {ITEM.LASTVALUE})'
+                  expression: 'min(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_CHECK_AVG})>={$CPU.UTIL.AVG}'
+                  recovery_expression: 'max(/Windows CPU by NOC/system.cpu.util,{$CPU.UTIL.TIME_REC_AVG})<{$CPU.UTIL.AVG}'
+              tags:
+                - tag: scope
+                  value: performance
+      macros:
+        - macro: '{$CPU.UTIL.AVG}'
+          value: '95'
+        - macro: '{$CPU.UTIL.HIGH}'
+          value: '99'
+          description: 'O limite crítico de utilização da CPU em porcentagem'
+        - macro: '{$CPU.UTIL.TIME_CHECK_AVG}'
+          value: 15m
+        - macro: '{$CPU.UTIL.TIME_CHECK_HIGH}'
+          value: 15m
+          description: 'Tempo de checagem para disparo da trigger  prioridade alta'
+        - macro: '{$CPU.UTIL.TIME_CHECK_WARN}'
+          value: 15m
+          description: 'Tempo de checagem para disparo da trigger  de atenção'
+        - macro: '{$CPU.UTIL.TIME_REC_AVG}'
+          value: 10m
+        - macro: '{$CPU.UTIL.TIME_REC_HIGH}'
+          value: 10m
+          description: 'Tempo para recuperação de alerta de prioridade High'
+        - macro: '{$CPU.UTIL.TIME_REC_WARN}'
+          value: 10m
+          description: 'Tempo para recuperação de alerta de prioridade Warning'
+        - macro: '{$CPU.UTIL.WARN}'
+          value: '90'
+          description: 'O limite para aviso de utilização da CPU em porcentagem'
+      dashboards:
+        - uuid: 644dd085533d49539829dbb6136c770a
+          name: CPU
+          pages:
+            - name: Overview
+              widgets:
+                - type: GRAPH_CLASSIC
+                  width: '24'
+                  height: '5'
+                - type: GRAPH_CLASSIC
+                  'y': '5'
+                  width: '24'
+                  height: '5'
+                - type: GRAPH_CLASSIC
+                  'y': '10'
+                  width: '24'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid
+                      value:
+                        host: 'Windows CPU by NOC'
+                        name: 'Windows: CPU utilization'
+  graphs:
+    - uuid: c7229bb936054ce1b911f3aa2194a0bd
+      name: 'Windows: CPU utilization'
+      ymin_type_1: FIXED
+      ymax_type_1: FIXED
+      graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 199C0D
+          item:
+            host: 'Windows CPU by NOC'
+            key: system.cpu.util

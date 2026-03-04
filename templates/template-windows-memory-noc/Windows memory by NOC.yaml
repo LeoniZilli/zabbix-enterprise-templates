@@ -1,0 +1,342 @@
+zabbix_export:
+  version: '6.0'
+  date: '2026-03-04T12:01:31Z'
+  groups:
+    - uuid: 57b7ae836ca64446ba2c296389c009b7
+      name: Templates/Modules
+  templates:
+    - uuid: 3ef2f2360c5b4c95ab995cda4097f106
+      template: 'Windows memory by NOC'
+      name: 'Windows memory by NOC'
+      description: 'Modelo padrão para monitorar a memória de máquinas Windows - Atualizando'
+      groups:
+        - name: Templates/Modules
+      items:
+        - uuid: a64d5b9e18704fd7ae37616e9db19650
+          name: 'Windows: Cache bytes'
+          type: ZABBIX_ACTIVE
+          key: 'perf_counter_en["\Memory\Cache Bytes"]'
+          history: 7d
+          units: B
+          description: |
+            Cache Bytes is the sum of the Memory\\System Cache Resident Bytes, Memory\\System Driver Resident Bytes,
+            Memory\\System Code Resident Bytes, and Memory\\Pool Paged Resident Bytes counters. This counter displays
+            the last observed value only; it is not an average.
+          tags:
+            - tag: component
+              value: memory
+        - uuid: ef80d57b47dc48b6aef3e3792dae3af1
+          name: 'Windows: Free system page table entries'
+          type: ZABBIX_ACTIVE
+          key: 'perf_counter_en["\Memory\Free System Page Table Entries"]'
+          history: 7d
+          description: |
+            This indicates the number of page table entries not currently in use by the system. If the number is less
+            than 5,000, there may well be a memory leak or you running out of memory.
+          tags:
+            - tag: component
+              value: memory
+        - uuid: 5f2df8c0e2284cb8a0ef2b0d5e968126
+          name: 'Windows: Memory page faults per second'
+          type: ZABBIX_ACTIVE
+          key: 'perf_counter_en["\Memory\Page Faults/sec"]'
+          history: 7d
+          value_type: FLOAT
+          description: |
+            Page Faults/sec is the average number of pages faulted per second. It is measured in number of pages
+            faulted per second because only one page is faulted in each fault operation, hence this is also equal
+            to the number of page fault operations. This counter includes both hard faults (those that require
+            disk access) and soft faults (where the faulted page is found elsewhere in physical memory.) Most
+            processors can handle large numbers of soft faults without significant consequence. However, hard faults,
+            which require disk access, can cause significant delays.
+          tags:
+            - tag: component
+              value: memory
+        - uuid: 27f4195637df4c58b48fd3de16477035
+          name: 'Windows: Memory pages per second'
+          type: ZABBIX_ACTIVE
+          key: 'perf_counter_en["\Memory\Pages/sec"]'
+          history: 7d
+          value_type: FLOAT
+          description: |
+            This measures the rate at which pages are read from or written to disk to resolve hard page faults.
+            If the value is greater than 1,000, as a result of excessive paging, there may be a memory leak.
+          tags:
+            - tag: component
+              value: memory
+        - uuid: 31688424cd6d4b9f94f6ceadbfcf5c37
+          name: 'Windows: Memory pool non-paged'
+          type: ZABBIX_ACTIVE
+          key: 'perf_counter_en["\Memory\Pool Nonpaged Bytes"]'
+          history: 7d
+          units: B
+          description: |
+            This measures the size, in bytes, of the non-paged pool. This is an area of system memory for objects
+            that cannot be written to disk but instead must remain in physical memory as long as they are allocated.
+            There is a possible memory leak if the value is greater than 175MB (or 100MB with the /3GB switch).
+            A typical Event ID 2019 is recorded in the system event log.
+          tags:
+            - tag: component
+              value: memory
+        - uuid: 3b4ff72f52014cb8932ef74af1477ac2
+          name: 'Windows: Used swap space in %'
+          type: ZABBIX_ACTIVE
+          key: 'perf_counter_en["\Paging file(_Total)\% Usage"]'
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          description: 'The used space of swap volume/file in percent.'
+          tags:
+            - tag: component
+              value: memory
+            - tag: component
+              value: storage
+        - uuid: 38cd5ee3fe7745b9a2744fdc60d51335
+          name: 'Windows: Free swap space'
+          type: CALCULATED
+          key: system.swap.free
+          history: 7d
+          units: B
+          params: 'last(//system.swap.size[,total]) - last(//system.swap.size[,total]) / 100 * last(//perf_counter_en["\Paging file(_Total)\% Usage"])'
+          description: 'The free space of the swap volume/file expressed in bytes.'
+          tags:
+            - tag: component
+              value: memory
+            - tag: component
+              value: storage
+        - uuid: fec55a62c2ed4ba99c156fd14f0ce0a5
+          name: 'Windows: Free swap space in %'
+          type: DEPENDENT
+          key: system.swap.pfree
+          delay: '0'
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          description: 'The free space of the swap volume/file expressed in %.'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'return (100 - value)'
+          master_item:
+            key: 'perf_counter_en["\Paging file(_Total)\% Usage"]'
+          tags:
+            - tag: component
+              value: memory
+            - tag: component
+              value: storage
+        - uuid: 73f1b383be6d4a699a8d84b82aa1c70e
+          name: 'Windows: Total swap space'
+          type: ZABBIX_ACTIVE
+          key: 'system.swap.size[,total]'
+          history: 7d
+          units: B
+          description: 'The total space of the swap volume/file expressed in bytes.'
+          tags:
+            - tag: component
+              value: memory
+            - tag: component
+              value: storage
+        - uuid: 1c747bed7cf040fe93c3f09e352fd902
+          name: 'Windows: Total swap used'
+          type: ZABBIX_ACTIVE
+          key: 'system.swap.size[,used]'
+          history: 7d
+          units: B
+          description: 'The used space of the swap volume/file expressed in bytes.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: bb1f4ad0a7ed40c0adb57803538b313e
+          name: 'Windows: Available memory'
+          type: ZABBIX_ACTIVE
+          key: 'vm.memory.size[available]'
+          history: 7d
+          units: B
+          description: 'Available memory in bytes.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: a0b5d4c6d8874075b8368ba61a5244b6
+          name: 'Windows: Total memory'
+          type: ZABBIX_ACTIVE
+          key: 'vm.memory.size[total]'
+          history: 7d
+          units: B
+          description: 'The total memory expressed in bytes.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: 5202738b9ea6415fa6ee67b36bf828c6
+          name: 'Windows: Used memory'
+          type: ZABBIX_ACTIVE
+          key: 'vm.memory.size[used]'
+          history: 7d
+          units: B
+          description: 'Used memory in bytes.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: 680eeb0b510f41788e3c228f2b4efa90
+          name: 'Windows: Memory utilization'
+          type: CALCULATED
+          key: vm.memory.util
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          params: 'last(//vm.memory.size[used]) / last(//vm.memory.size[total]) * 100'
+          description: 'Memory utilization in %.'
+          tags:
+            - tag: component
+              value: memory
+      macros:
+        - macro: '{$MEMORY.UTIL.AVG}'
+          value: '95'
+          description: 'O limite de aviso do item utilitário memória'
+        - macro: '{$MEMORY.UTIL.HIGH}'
+          value: '99'
+          description: 'O limite de aviso do item utilitário memória'
+        - macro: '{$MEMORY.UTIL.TIME_CHECK}'
+          value: 15m
+          description: 'Tempo de aviso de limite de memória'
+        - macro: '{$MEMORY.UTIL.TIME_REC}'
+          value: 1m
+          description: 'Tempo de recuperação de limite de memória'
+        - macro: '{$MEMORY.UTIL.WARN}'
+          value: '90'
+          description: 'O limite de aviso do item utilitário memória'
+        - macro: '{$SWAP.PFREE.MIN.AVG}'
+          value: '10'
+          description: 'O limite de aviso do swap livre mínimo'
+        - macro: '{$SWAP.TIME_CHECK}'
+          value: 15m
+          description: 'Tempo de aviso de limite de swap'
+        - macro: '{$SWAP.TIME_REC}'
+          value: 10m
+          description: 'Tempo de recuperação de limite de swap'
+      dashboards:
+        - uuid: 949be9ea2f6f408d8aa1612614d0f286
+          name: Memory
+          pages:
+            - name: Overview
+              widgets:
+                - type: GRAPH_CLASSIC
+                  width: '24'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid
+                      value:
+                        host: 'Windows memory by NOC'
+                        name: 'Windows: Memory utilization'
+                - type: GRAPH_CLASSIC
+                  'y': '5'
+                  width: '24'
+                  height: '5'
+                  fields:
+                    - type: GRAPH
+                      name: graphid
+                      value:
+                        host: 'Windows memory by NOC'
+                        name: 'Windows: Swap usage'
+  triggers:
+    - uuid: 514fe51e47744fc796cc8870520c161f
+      expression: |
+        min(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_CHECK}) and 
+        last(/Windows memory by NOC/vm.memory.size[used]) / last(/Windows memory by NOC/vm.memory.size[total])*100>{$MEMORY.UTIL.AVG}
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'min(/Windows memory by NOC/vm.memory.util, {$MEMORY.UTIL.TIME_REC})<{$MEMORY.UTIL.AVG}'
+      name: 'MEMORY: Utilização acima de {$MEMORY.UTIL.AVG}% por mais de {$MEMORY.UTIL.TIME_CHECK} (Usando {ITEM.VALUE2} de {ITEM.VALUE3})'
+      priority: AVERAGE
+      description: 'The system is running out of free memory.'
+      manual_close: 'YES'
+      dependencies:
+        - name: 'MEMORY: Utilização acima de {$MEMORY.UTIL.HIGH}% por mais de {$MEMORY.UTIL.TIME_CHECK} (Usando {ITEM.VALUE2} de {ITEM.VALUE3})'
+          expression: |
+            min(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_CHECK}) and 
+            last(/Windows memory by NOC/vm.memory.size[used]) / last(/Windows memory by NOC/vm.memory.size[total])*100>{$MEMORY.UTIL.HIGH}
+          recovery_expression: 'min(/Windows memory by NOC/vm.memory.util, {$MEMORY.UTIL.TIME_REC})<{$MEMORY.UTIL.HIGH}'
+      tags:
+        - tag: scope
+          value: capacity
+        - tag: scope
+          value: performance
+    - uuid: 08ebb6100a95487883612609d104bc95
+      expression: |
+        min(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_CHECK}) and 
+        last(/Windows memory by NOC/vm.memory.size[used]) / last(/Windows memory by NOC/vm.memory.size[total])*100>{$MEMORY.UTIL.HIGH}
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'min(/Windows memory by NOC/vm.memory.util, {$MEMORY.UTIL.TIME_REC})<{$MEMORY.UTIL.HIGH}'
+      name: 'MEMORY: Utilização acima de {$MEMORY.UTIL.HIGH}% por mais de {$MEMORY.UTIL.TIME_CHECK} (Usando {ITEM.VALUE2} de {ITEM.VALUE3})'
+      priority: HIGH
+      description: 'The system is running out of free memory.'
+      manual_close: 'YES'
+      tags:
+        - tag: scope
+          value: capacity
+        - tag: scope
+          value: performance
+    - uuid: 01152892de924301b030ba21deaff538
+      expression: |
+        min(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_CHECK}) and 
+        last(/Windows memory by NOC/vm.memory.size[used]) / last(/Windows memory by NOC/vm.memory.size[total])*100>{$MEMORY.UTIL.WARN}
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'max(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_REC})<{$MEMORY.UTIL.WARN}'
+      name: 'MEMORY: Utilização acima de {$MEMORY.UTIL.WARN}% por mais de {$MEMORY.UTIL.TIME_CHECK} (Usando {ITEM.VALUE2} de {ITEM.VALUE3})'
+      status: DISABLED
+      priority: WARNING
+      description: 'O sistema está ficando sem memória livre.'
+      dependencies:
+        - name: 'MEMORY: Utilização acima de {$MEMORY.UTIL.AVG}% por mais de {$MEMORY.UTIL.TIME_CHECK} (Usando {ITEM.VALUE2} de {ITEM.VALUE3})'
+          expression: |
+            min(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_CHECK}) and 
+            last(/Windows memory by NOC/vm.memory.size[used]) / last(/Windows memory by NOC/vm.memory.size[total])*100>{$MEMORY.UTIL.AVG}
+          recovery_expression: 'min(/Windows memory by NOC/vm.memory.util, {$MEMORY.UTIL.TIME_REC})<{$MEMORY.UTIL.AVG}'
+      tags:
+        - tag: scope
+          value: capacity
+        - tag: scope
+          value: performance
+    - uuid: 759013ea95df4f5db6a0d12812448133
+      expression: |
+        max(/Windows memory by NOC/system.swap.pfree,{$SWAP.TIME_CHECK})<={$SWAP.PFREE.MIN.AVG} and 
+        last(/Windows memory by NOC/system.swap.size[,total])>0 and 
+        last(/Windows memory by NOC/system.swap.free)
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'min(/Windows memory by NOC/system.swap.pfree,{$SWAP.TIME_REC})>{$SWAP.PFREE.MIN.AVG}'
+      name: 'SWAP: Alto uso do espaço swap (menos de {$SWAP.PFREE.MIN.AVG}% livre) (Livre {ITEM.LASTVALUE3} de {ITEM.VALUE2})'
+      status: DISABLED
+      priority: AVERAGE
+      description: 'This trigger is ignored, if there is no swap configured'
+      manual_close: 'YES'
+      dependencies:
+        - name: 'MEMORY: Utilização acima de {$MEMORY.UTIL.HIGH}% por mais de {$MEMORY.UTIL.TIME_CHECK} (Usando {ITEM.VALUE2} de {ITEM.VALUE3})'
+          expression: |
+            min(/Windows memory by NOC/vm.memory.util,{$MEMORY.UTIL.TIME_CHECK}) and 
+            last(/Windows memory by NOC/vm.memory.size[used]) / last(/Windows memory by NOC/vm.memory.size[total])*100>{$MEMORY.UTIL.HIGH}
+          recovery_expression: 'min(/Windows memory by NOC/vm.memory.util, {$MEMORY.UTIL.TIME_REC})<{$MEMORY.UTIL.HIGH}'
+      tags:
+        - tag: scope
+          value: performance
+  graphs:
+    - uuid: 8b985639dc9c4337b8ee35b1e3414e37
+      name: 'Windows: Memory utilization'
+      ymin_type_1: FIXED
+      ymax_type_1: FIXED
+      graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 199C0D
+          item:
+            host: 'Windows memory by NOC'
+            key: vm.memory.util
+    - uuid: 448cd7337472495481ec3e8a85f05998
+      name: 'Windows: Swap usage'
+      graph_items:
+        - color: 199C0D
+          item:
+            host: 'Windows memory by NOC'
+            key: system.swap.free
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: 'Windows memory by NOC'
+            key: 'system.swap.size[,total]'

@@ -13,7 +13,7 @@ zabbix_export:
         - name: 'Linux CPU by NOC'
         - name: 'Linux discovery disk by NOC'
         - name: 'Linux memory by NOC'
-        - name: 'Zabbix Agent - Triple Check  by NOC'
+        - name: 'Triple Check  by NOC'
       groups:
         - name: Templates/Modules
       items:
